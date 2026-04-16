@@ -1,0 +1,54 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Verify user and group absence
+      ansible.builtin.command: "grep -q '^{{ item.name }}:' {{ item.path }}"
+      register: absence_checks
+      failed_when: false
+      changed_when: false
+      loop:
+        - { name: 'ollama', path: '/etc/passwd' }
+        - { name: 'ollama', path: '/etc/group' }
+
+    - name: Assert ollama user and group are absent
+      ansible.builtin.assert:
+        that:
+          - item.rc != 0
+        fail_msg: "{{ item.item.name }} still exists in {{ item.item.path }}"
+      loop: "{{ absence_checks.results }}"
+
+    - name: Check ollama service unit file is absent
+      ansible.builtin.stat:
+        path: /etc/systemd/system/ollama.service
+      register: ollama_service_stat
+
+    - name: Assert ollama service unit file is absent
+      ansible.builtin.assert:
+        that:
+          - not ollama_service_stat.stat.exists
+        fail_msg: "ollama service unit file still exists after uninstall"
+
+    - name: Check ollama binary is absent
+      ansible.builtin.stat:
+        path: /usr/local/bin/ollama
+      register: ollama_binary_stat
+
+    - name: Assert ollama binary is absent
+      ansible.builtin.assert:
+        that:
+          - not ollama_binary_stat.stat.exists
+        fail_msg: "ollama binary still exists after uninstall"
+
+    - name: Check ollama data directory is absent
+      ansible.builtin.stat:
+        path: /var/lib/ollama
+      register: ollama_data_stat
+
+    - name: Assert ollama data directory is absent
+      ansible.builtin.assert:
+        that:
+          - not ollama_data_stat.stat.exists
+        fail_msg: "ollama data directory still exists after uninstall"

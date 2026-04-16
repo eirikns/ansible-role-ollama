@@ -1,0 +1,5 @@
+---
+ollama_resolved_ver: "{{ ollama_ver }}"
+# "https://github.com/ollama/ollama/releases/download/v0.19.0/ollama-linux-amd64.tar.zst"
+ollama_download_url: "{{ ollama_download_base_url }}/v{{ ollama_resolved_ver }}/ollama-linux-amd64.tar.zst"
+ollama_check_file_path: "{{ ollama_path_prefix }}/bin/ollama"

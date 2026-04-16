@@ -1,0 +1,16 @@
+---
+- name: Stop ollama service before upgrade
+  ansible.builtin.systemd:
+    name: ollama
+    state: stopped
+  failed_when: false
+
+- name: Remove ollama binary
+  ansible.builtin.file:
+    path: "{{ ollama_check_file_path }}"
+    state: absent
+
+- name: Remove ollama lib directory
+  ansible.builtin.file:
+    path: "{{ ollama_path_prefix }}/lib/ollama"
+    state: absent

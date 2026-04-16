@@ -1,0 +1,57 @@
+---
+- name: Install zstd
+  ansible.builtin.apt:
+    name: zstd
+    state: present
+    update_cache: true
+
+- name: Create ollama group
+  ansible.builtin.group:
+    name: "{{ ollama_group }}"
+    system: true
+    state: present
+
+- name: Create ollama user
+  ansible.builtin.user:
+    name: "{{ ollama_user }}"
+    group: "{{ ollama_group }}"
+    home: "{{ ollama_user_home }}"
+    shell: /usr/sbin/nologin
+    system: true
+    create_home: true
+    state: present
+
+- name: Check if ollama binary needs to be downloaded
+  ansible.builtin.stat:
+    path: "{{ ollama_check_file_path }}"
+  register: ollama_stat
+  when: not ollama_skip_download
+
+- name: Download and extract ollama
+  ansible.builtin.unarchive:
+    src: "{{ ollama_download_url }}"
+    dest: "{{ ollama_path_prefix }}"
+    remote_src: true
+    owner: "{{ ollama_user }}"
+    group: "{{ ollama_group }}"
+  when: not ollama_skip_download and (ollama_stat is skipped or not ollama_stat.stat.exists)
+
+- name: Deploy ollama systemd service unit
+  ansible.builtin.template:
+    src: ollama.service.j2
+    dest: /etc/systemd/system/ollama.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Reload systemd daemon
+    - Restart ollama
+
+- name: Flush handlers before enabling service
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start ollama service
+  ansible.builtin.systemd:
+    name: ollama
+    enabled: true
+    state: started

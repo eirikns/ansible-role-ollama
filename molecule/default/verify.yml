@@ -1,0 +1,72 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Get ollama user info
+      ansible.builtin.getent:
+        database: passwd
+        key: ollama
+
+    - name: Assert ollama user home directory is /var/lib/ollama
+      ansible.builtin.assert:
+        that:
+          - getent_passwd['ollama'][4] == '/var/lib/ollama'
+        fail_msg: "ollama user home directory is not /var/lib/ollama"
+
+    - name: Get ollama group info
+      ansible.builtin.getent:
+        database: group
+        key: ollama
+
+    - name: Assert ollama group exists
+      ansible.builtin.assert:
+        that:
+          - "'ollama' in getent_group"
+        fail_msg: "ollama group does not exist"
+
+    - name: Check ollama service unit file exists
+      ansible.builtin.stat:
+        path: /etc/systemd/system/ollama.service
+      register: ollama_service_stat
+
+    - name: Assert ollama service unit file is present
+      ansible.builtin.assert:
+        that:
+          - ollama_service_stat.stat.exists
+        fail_msg: "ollama service unit file does not exist"
+
+    - name: Get ollama service status
+      ansible.builtin.systemd:
+        name: ollama
+      register: ollama_service
+
+    - name: Assert ollama service is enabled
+      ansible.builtin.assert:
+        that:
+          - ollama_service.status.UnitFileState == 'enabled'
+        fail_msg: "ollama service is not enabled"
+
+    - name: Read ollama service unit file
+      ansible.builtin.slurp:
+        src: /etc/systemd/system/ollama.service
+      register: ollama_service_unit
+
+    - name: Assert OLLAMA_HOST is set in the service unit file
+      ansible.builtin.assert:
+        that:
+          - "'OLLAMA_HOST=' in (ollama_service_unit.content | b64decode)"
+        fail_msg: "OLLAMA_HOST is not set in the ollama service unit file"
+
+    - name: Assert OLLAMA_DEBUG is not set in the service unit file by default
+      ansible.builtin.assert:
+        that:
+          - "'OLLAMA_DEBUG=' not in (ollama_service_unit.content | b64decode)"
+        fail_msg: "OLLAMA_DEBUG should not be set in the ollama service unit file by default"
+
+    - name: Assert OLLAMA_ORIGINS is not set in the service unit file (default empty list)
+      ansible.builtin.assert:
+        that:
+          - "'OLLAMA_ORIGINS=' not in (ollama_service_unit.content | b64decode)"
+        fail_msg: "OLLAMA_ORIGINS should not be set when ollama_origins is empty"

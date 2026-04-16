@@ -1,0 +1,56 @@
+---
+# Version of Ollama to install. Set to "latest" to automatically install the latest release.
+ollama_ver: 0.19.0
+
+# Base URL for downloading Ollama releases
+ollama_download_base_url: https://github.com/ollama/ollama/releases/download
+
+# Installation path prefix (binary is placed at <prefix>/bin/ollama)
+ollama_path_prefix: /usr/local
+
+# System user to run the Ollama service
+ollama_user: ollama
+
+# System group for the Ollama service
+ollama_group: ollama
+
+# Home directory for the Ollama system user (used to store models and data)
+ollama_user_home: /var/lib/ollama
+
+# Listen address for ollama API. Use 0.0.0.0 as the IP address to expose ollama on all interfaces.
+# Note that ollama itself has no authentication - it will be exposed to anyone with access to the port,
+# potentially also anyone on the Internet.
+ollama_host: 127.0.0.1:11434
+
+# Directory for storing Ollama models. Leave empty to use the Ollama default (~/.ollama/models).
+ollama_models_dir: ""
+
+# List of allowed CORS origins for the Ollama API. Leave empty to use Ollama's default allowed origins.
+ollama_origins: []
+#  - https://example.org/myapp
+
+# When set to true, enable Flash Attention for the Ollama service (sets OLLAMA_FLASH_ATTENTION=1)
+ollama_flash_attention: false
+
+# Quantization type for the K/V cache. Valid values: "q8_0", "q4_0", "f16". Leave empty to use the default.
+ollama_kv_cache_type: ""
+
+# When set to true, skip downloading and extracting the Ollama archive (useful for testing)
+ollama_skip_download: false
+
+# When set to true, uninstall Ollama instead of installing it
+ollama_uninstall: false
+
+# Set the OLLAMA_DEBUG environment variable. Leave empty to disable debug logging.
+# Set to "1" for standard debug output, "2" for more verbose output, etc.
+ollama_debug: ""
+
+# List of models to manage.
+ollama_models: []
+#   - name: llama3.2
+#     state: present
+#   - name: mistral
+#     state: absent
+#   - name: some-model-from-untrusted-registry
+#     state: present
+#     insecure: true

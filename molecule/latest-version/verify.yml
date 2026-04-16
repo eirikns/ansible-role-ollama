@@ -1,0 +1,20 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Fetch latest ollama release from GitHub API
+      ansible.builtin.uri:
+        url: https://api.github.com/repos/ollama/ollama/releases/latest
+        return_content: true
+      register: ollama_latest_release
+
+    - name: Assert GitHub API response contains a tag name
+      ansible.builtin.assert:
+        that:
+          - ollama_latest_release.json.tag_name is defined
+          - ollama_latest_release.json.tag_name | regex_search('^v\d+\.\d+\.\d+') is not none
+        fail_msg: >-
+          GitHub API did not return a valid version tag.
+          Got: {{ ollama_latest_release.json.tag_name | default('undefined') }}

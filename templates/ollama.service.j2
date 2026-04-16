@@ -1,0 +1,31 @@
+[Unit]
+Description=Ollama Service
+After=network-online.target
+
+[Service]
+ExecStart={{ ollama_check_file_path }} serve
+User={{ ollama_user }}
+Group={{ ollama_group }}
+Restart=always
+RestartSec=3
+Environment="PATH={{ ansible_facts['env']['PATH'] }}"
+Environment="OLLAMA_HOST={{ ollama_host }}"
+{% if ollama_debug %}
+Environment="OLLAMA_DEBUG={{ ollama_debug }}"
+{% endif %}
+{% if ollama_models_dir %}
+Environment="OLLAMA_MODELS={{ ollama_models_dir }}"
+{% endif %}
+{% if ollama_origins %}
+Environment="OLLAMA_ORIGINS={{ ollama_origins | join(',') }}"
+{% endif %}
+Environment="OLLAMA_FLASH_ATTENTION={{ ollama_flash_attention | lower }}"
+{% if ollama_kv_cache_type %}
+Environment="OLLAMA_KV_CACHE_TYPE={{ ollama_kv_cache_type }}"
+{% endif %}
+{% if ollama_context_length is defined %}
+Environment="OLLAMA_CONTEXT_LENGTH={{ ollama_context_length }}"
+{% endif %}
+
+[Install]
+WantedBy=default.target

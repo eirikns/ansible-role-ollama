@@ -1,0 +1,72 @@
+---
+name: CI
+'on':
+  pull_request:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "0 8 * * 0"
+
+defaults:
+  run:
+    working-directory: 'eirikns.ollama'
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v5
+        with:
+          path: 'eirikns.ollama'
+
+      - name: Set up Python 3.
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install test dependencies.
+        run: |
+          pip3 install ansible-lint
+          ansible-galaxy install -r requirements.yaml
+
+      - name: Lint code.
+        run: |
+          yamllint .
+          ansible-lint
+
+  molecule:
+    name: Molecule
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        distro:
+          - debian13
+          - ubuntu2404
+        scenario:
+          - default
+          - uninstall
+          - latest-version
+
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v5
+        with:
+          path: 'eirikns.ollama'
+
+      - name: Set up Python 3.
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install test dependencies.
+        run: pip3 install ansible molecule molecule-plugins[docker] docker
+
+      - name: Run Molecule tests.
+        run: molecule test --scenario-name ${{ matrix.scenario }}
+        env:
+          PY_COLORS: '1'
+          ANSIBLE_FORCE_COLOR: '1'
+          MOLECULE_DISTRO: ${{ matrix.distro }}

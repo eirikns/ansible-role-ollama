@@ -1,0 +1,8 @@
+# Temporary files
+.ansible
+
+# Editors and IDEs
+*~
+*.iml
+.idea
+.vscode

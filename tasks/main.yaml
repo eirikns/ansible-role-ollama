@@ -1,0 +1,52 @@
+---
+- name: Fetch latest ollama version from GitHub
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/ollama/ollama/releases/latest
+    return_content: true
+  register: ollama_latest_release
+  when: ollama_ver == "latest"
+
+- name: Set resolved ollama version to latest
+  ansible.builtin.set_fact:
+    ollama_resolved_ver: "{{ ollama_latest_release.json.tag_name | regex_replace('^v', '') }}"
+  when: >-
+    ollama_ver == "latest" and
+    ollama_latest_release.json is defined and
+    ollama_latest_release.json.tag_name is defined
+
+- name: Check if ollama is already installed
+  ansible.builtin.stat:
+    path: "{{ ollama_check_file_path }}"
+  register: ollama_stat
+  when: not ollama_skip_download
+
+- name: Get installed ollama version
+  ansible.builtin.command: "{{ ollama_check_file_path }} --version"
+  register: ollama_version_output
+  changed_when: false
+  failed_when: false
+  when: not ollama_skip_download and ollama_stat is not skipped and ollama_stat.stat.exists
+
+- name: Set installed ollama version fact
+  ansible.builtin.set_fact:
+    ollama_installed_ver: "{{ ollama_version_output.stdout | regex_search('version is (\\S+)', '\\1') | default(['']) | first }}"
+  when: >-
+    not ollama_skip_download and
+    ollama_version_output is not skipped and
+    (ollama_version_output.stdout | regex_search('version is (\S+)') is not none)
+
+- name: Uninstall ollama
+  ansible.builtin.include_tasks: uninstall.yaml
+  when: ollama_uninstall
+
+- name: Remove ollama binary and lib directory before upgrade
+  ansible.builtin.include_tasks: upgrade.yaml
+  when: not ollama_uninstall and (ollama_installed_ver is defined and ollama_installed_ver != '' and ollama_installed_ver != ollama_resolved_ver)
+
+- name: Install ollama
+  ansible.builtin.include_tasks: install.yaml
+  when: not ollama_uninstall
+
+- name: Manage ollama models
+  ansible.builtin.include_tasks: models.yaml
+  when: not ollama_uninstall

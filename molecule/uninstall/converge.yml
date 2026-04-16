@@ -1,0 +1,18 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+
+  roles:
+    - role: eirikns.ollama
+      vars:
+        ollama_skip_download: true
+
+- name: Uninstall
+  hosts: all
+  become: true
+
+  roles:
+    - role: eirikns.ollama
+      vars:
+        ollama_uninstall: true
