@@ -6,4 +6,6 @@
   roles:
     - role: eirikns.ollama
       vars:
+        # ollama is a large archive (~1.5 GB); skip the actual download in CI
+        # to keep tests fast. Checksum retrieval is still tested via verify.yml.
         ollama_skip_download: true
