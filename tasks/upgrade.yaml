@@ -9,6 +9,7 @@
   ansible.builtin.file:
     path: "{{ ollama_check_file_path }}"
     state: absent
+  notify: Restart ollama
 
 - name: Remove ollama lib directory
   ansible.builtin.file:
