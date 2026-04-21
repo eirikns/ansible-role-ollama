@@ -20,7 +20,8 @@
   ansible.builtin.command:
     cmd: "{{ ollama_check_file_path }} pull {{ ('--insecure ' if (item.insecure | default(false)) else '') + item.name }}"
   loop: "{{ ollama_models | selectattr('state', 'equalto', 'present') | list }}"
-  changed_when: true
+  register: ollama_pull_result
+  changed_when: "'pulling' in ollama_pull_result.stdout"
   when: >-
     ollama_list_result is skipped or
     not (ollama_list_result.stdout_lines | select('match', '^' + item.name + '(:|\\s|$)') | list | length > 0)
