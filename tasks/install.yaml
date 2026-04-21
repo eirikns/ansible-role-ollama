@@ -21,15 +21,42 @@
     create_home: true
     state: present
 
+- name: Fetch ollama SHA256 checksum file
+  ansible.builtin.uri:
+    url: "{{ ollama_checksum_url }}"
+    return_content: true
+  register: ollama_checksum_file
+
+- name: Extract SHA256 checksum for ollama archive
+  ansible.builtin.set_fact:
+    ollama_archive_checksum: >-
+      {{ ollama_checksum_file.content
+         | regex_search('([0-9a-f]{64})\s+\./' + ollama_archive_filename, '\1')
+         | first }}
+
+- name: Write checksum to file
+  ansible.builtin.copy:
+    content: "{{ ollama_archive_checksum }}"
+    dest: /tmp/ollama_expected_checksum
+    mode: "0644"
+
 - name: Check if ollama binary needs to be downloaded
   ansible.builtin.stat:
     path: "{{ ollama_check_file_path }}"
   register: ollama_stat
   when: not ollama_skip_download
 
-- name: Download and extract ollama
+- name: Download ollama archive
+  ansible.builtin.get_url:
+    url: "{{ ollama_download_url }}"
+    dest: "{{ ollama_archive_tmp_path }}"
+    checksum: "sha256:{{ ollama_archive_checksum }}"
+    mode: "0644"
+  when: not ollama_skip_download and (ollama_stat is skipped or not ollama_stat.stat.exists)
+
+- name: Extract ollama archive
   ansible.builtin.unarchive:
-    src: "{{ ollama_download_url }}"
+    src: "{{ ollama_archive_tmp_path }}"
     dest: "{{ ollama_path_prefix }}"
     remote_src: true
     owner: "{{ ollama_user }}"
