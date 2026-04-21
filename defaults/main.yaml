@@ -22,8 +22,8 @@ ollama_user_home: /var/lib/ollama
 # potentially also anyone on the Internet.
 ollama_host: 127.0.0.1:11434
 
-# Directory for storing Ollama models. Leave empty to use the Ollama default (~/.ollama/models).
-ollama_models_dir: ""
+# Directory for storing Ollama models. Leave unset (null) to use the Ollama default (~/.ollama/models).
+ollama_models_dir:
 
 # List of allowed CORS origins for the Ollama API. Leave empty to use Ollama's default allowed origins.
 ollama_origins: []
