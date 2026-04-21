@@ -5,6 +5,8 @@
     return_content: true
   register: ollama_latest_release
   when: ollama_ver == "latest"
+  retries: 3
+  delay: 5
 
 - name: Set resolved ollama version to latest
   ansible.builtin.set_fact:
