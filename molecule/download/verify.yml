@@ -1,0 +1,41 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Check ollama binary exists
+      ansible.builtin.stat:
+        path: /usr/local/bin/ollama
+      register: ollama_binary
+
+    - name: Assert ollama binary is present and executable
+      ansible.builtin.assert:
+        that:
+          - ollama_binary.stat.exists
+          - ollama_binary.stat.executable
+        fail_msg: "ollama binary is missing or not executable at /usr/local/bin/ollama"
+
+    - name: Read expected ollama archive checksum
+      ansible.builtin.slurp:
+        src: /tmp/ollama_expected_checksum
+      register: ollama_expected_checksum
+
+    - name: Assert checksum was obtained and is a valid SHA256 hash
+      ansible.builtin.assert:
+        that:
+          - ollama_expected_checksum.content | b64decode | trim | regex_search('^[0-9a-f]{64}$') is not none
+        fail_msg: "ollama archive checksum was not obtained or is not a valid SHA256 hash"
+
+    - name: Compute SHA256 of the downloaded archive
+      ansible.builtin.command: sha256sum /tmp/ollama-linux-amd64.tar.zst
+      register: ollama_actual_checksum
+      changed_when: false
+
+    - name: Assert downloaded archive checksum matches expected
+      ansible.builtin.assert:
+        that:
+          - ollama_actual_checksum.stdout.split()[0] == (ollama_expected_checksum.content | b64decode | trim)
+        fail_msg: >-
+          SHA256 mismatch: expected {{ ollama_expected_checksum.content | b64decode | trim }},
+          got {{ ollama_actual_checksum.stdout.split()[0] }}
