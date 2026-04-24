@@ -124,6 +124,16 @@ To uninstall Ollama:
         ollama_uninstall: true
 ```
 
+## Development
+
+Most molecule scenarios use `ollama_skip_download: true` to avoid downloading the Ollama archive on every test run. The `download` scenario is an exception — it performs a real download and verifies the SHA256 checksum end-to-end. Because the Ollama archive is ~1.5 GB, this scenario is not included in CI.
+
+To run it locally:
+
+```sh
+molecule test --scenario-name download
+```
+
 # License
 
 MIT No Attribution
