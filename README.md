@@ -32,7 +32,7 @@ Use these to manage where ollama will be installed, as well as user ollama will 
 ollama_host: 127.0.0.1:11434
 ```
 
-Address and port for the Ollama service to listen on. Set to `0.0.0.0:11434` to allow access from the network. Note that ollama itself has no authentication – it will be exposed to anyone with access to the port, potentially also anyone on the Internet.
+Address and port for the Ollama service to listen on. Set to `0.0.0.0:11434` to allow access from the network. **Note that ollama itself has no authentication – it will be exposed to anyone with access to the port, potentially also anyone on the Internet.**
 
 ```yaml
 ollama_origins:
