@@ -26,6 +26,7 @@
     url: "{{ ollama_checksum_url }}"
     return_content: true
   register: ollama_checksum_file
+  check_mode: false
 
 - name: Extract SHA256 checksum for ollama archive
   ansible.builtin.set_fact:
